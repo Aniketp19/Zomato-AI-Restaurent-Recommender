@@ -85,7 +85,7 @@ Phase 0 through Phase 6 (MVP UI) backend and frontend implementation based on `d
 
 4. Run the data ingestion pipeline (first time only):
    ```bash
-   python -m src.data.pipeline
+   python -m src.phase1.data.pipeline
    ```
    This will create:
    - `data/restaurants.db` - SQLite database with restaurant data
@@ -93,10 +93,37 @@ Phase 0 through Phase 6 (MVP UI) backend and frontend implementation based on `d
 
 ### 2. Start the Backend Server
 ```bash
-uvicorn src.api.main:app --reload --port 8000
+uvicorn src.phase0.api.main:app --reload --port 8000
 ```
 
 The API will be available at: `http://localhost:8000`
+
+## 🌐 Production Deployment (Railway + Vercel)
+
+### 1) Backend (Railway)
+- Deploy this repo as a Railway service
+- Start command:
+  ```bash
+  python -m src.phase1.data.pipeline && uvicorn src.phase0.api.main:app --host 0.0.0.0 --port $PORT
+  ```
+- Required Railway environment variables:
+  ```bash
+  APP_ENV=production
+  SQLITE_PATH=data/restaurants.db
+  HF_DATASET_ID=ManikaSaini/zomato-restaurant-recommendation
+  HF_DATASET_SPLIT=train
+  GROQ_API_KEY=<your_groq_api_key>
+  GROQ_MODEL=llama-3.1-8b-instant
+  ALLOWED_ORIGINS=https://<your-vercel-app>.vercel.app
+  ```
+
+### 2) Frontend (Vercel)
+- Import `frontend/` as a Vercel project
+- Set environment variable:
+  ```bash
+  NEXT_PUBLIC_API_URL=https://<your-railway-backend>.up.railway.app
+  ```
+- Deploy and verify metadata endpoints load in UI (cities/cuisines/budgets)
 
 ### 3. Open the Frontend
 Simply open `index.html` in your browser:
