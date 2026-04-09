@@ -1,0 +1,171 @@
+╔════════════════════════════════════════════════════════════════╗
+║          ZOMATO AI RECOMMENDER - QUICK REFERENCE               ║
+║                    One-Page Cheat Sheet                        ║
+╚════════════════════════════════════════════════════════════════╝
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🚀 FASTEST START (Copy-Paste)                                  │
+└────────────────────────────────────────────────────────────────┘
+
+    setup_and_start.bat
+    
+    Then open: index.html in your browser
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 📋 MANUAL START (3 Commands)                                   │
+└────────────────────────────────────────────────────────────────┘
+
+    1. pip install -r requirements.txt
+    2. python -m uvicorn src.phase0.api.main:app --reload --port 8000
+    3. Open index.html in browser
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🔧 FIRST TIME SETUP                                            │
+└────────────────────────────────────────────────────────────────┘
+
+    # Only if database doesn't exist:
+    python -m src.phase1.load_data
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ ✅ VERIFY EVERYTHING WORKS                                     │
+└────────────────────────────────────────────────────────────────┘
+
+    python preflight_check.py          # System check
+    
+    # Or visual check:
+    Open test_api.html in browser
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🐛 TROUBLESHOOTING                                             │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ Error: "Failed to load form options" ────────────────────────┐
+│ Fix: Server not running                                        │
+│   → Run: setup_and_start.bat                                   │
+│   → Or: python -m uvicorn src.phase0.api.main:app --reload    │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ Error: "No recommendations found" ────────────────────────────┐
+│ Fix: Min rating too high                                       │
+│   → Set min_rating to 0                                        │
+│   → Try: Banashankari + Chinese + Medium                       │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ Error: "Port 8000 already in use" ────────────────────────────┐
+│ Fix: Kill the existing process                                 │
+│   → netstat -ano | findstr :8000                               │
+│   → taskkill /PID <pid> /F                                     │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ Error: "ModuleNotFoundError" ─────────────────────────────────┐
+│ Fix: Dependencies not installed                                │
+│   → pip install -r requirements.txt                            │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ Issue: "Fallback" explanations instead of AI ────────────────┐
+│ Status: FIXED! (User-Agent header added to bypass Cloudflare) │
+│ Verify: python test_llm_ranking.py                             │
+│ Should see: AI-generated unique explanations for each result   │
+└────────────────────────────────────────────────────────────────┘
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🧪 TESTING COMMANDS                                            │
+└────────────────────────────────────────────────────────────────┘
+
+    python quick_api_test.py           # Test API endpoints
+    python test_cuisines_parsing.py    # Check database
+    python debug_recommend.py          # Trace recommendation flow
+    python investigate_db.py           # Inspect database
+    python test_groq_api.py            # Test Groq LLM connection
+    python test_llm_ranking.py         # Test AI ranking (should work!)
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🌐 API ENDPOINTS                                               │
+└────────────────────────────────────────────────────────────────┘
+
+    GET  /health                       # Health check
+    GET  /meta/cities                  # Available cities
+    GET  /meta/cuisines                # Available cuisines
+    GET  /meta/budgets                 # Budget options
+    POST /recommend                    # Get recommendations
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 📚 DOCUMENTATION FILES                                         │
+└────────────────────────────────────────────────────────────────┘
+
+    VISUAL_GUIDE.md         → Step-by-step setup (START HERE!)
+    TROUBLESHOOTING.md      → Common issues and fixes
+    START_HERE.md           → Quick start guide
+    REFERENCE_GUIDE.md      → File navigation index
+    README.md               → Full project documentation
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 📂 KEY FILES                                                   │
+└────────────────────────────────────────────────────────────────┘
+
+    index.html                         # Main app (open in browser)
+    test_api.html                      # API tester (open in browser)
+    setup_and_start.bat                # One-click setup + start
+    preflight_check.py                 # Verify prerequisites
+    data/restaurants.db                # Database (51,717 restaurants)
+    .env                               # Configuration (has API key)
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🎯 GOOD TEST VALUES                                            │
+└────────────────────────────────────────────────────────────────┘
+
+    Location:    Banashankari  (906 restaurants)
+    Budget:      medium
+    Cuisine:     Chinese
+    Min Rating:  0             (many restaurants have 0.0 rating)
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 💡 PRO TIPS                                                    │
+└────────────────────────────────────────────────────────────────┘
+
+    • Keep server terminal open to see logs
+    • Use Ctrl+Shift+R in browser for hard refresh
+    • Check server logs first when debugging
+    • Use test_api.html for quick health checks
+    • Run preflight_check.py before reporting issues
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ 🆘 HELP SEQUENCE (When Stuck)                                 │
+└────────────────────────────────────────────────────────────────┘
+
+    1. python preflight_check.py       # Check prerequisites
+    2. Check server terminal            # Look for errors
+    3. Open test_api.html               # Verify endpoints
+    4. Press F12 in browser             # Check console errors
+    5. Read TROUBLESHOOTING.md          # Find your issue
+
+
+┌────────────────────────────────────────────────────────────────┐
+│ ⚡ EXPECTED OUTPUT (When Working)                              │
+└────────────────────────────────────────────────────────────────┘
+
+    Server:
+      ✅ Loaded 56 cities from database
+      ✅ Loaded 129 cuisines from database
+      INFO: Application startup complete.
+    
+    Browser (index.html):
+      ✅ Form with populated dropdowns
+      ✅ No error messages
+      ✅ Can submit and get 5 recommendations
+
+
+╔════════════════════════════════════════════════════════════════╗
+║  Quick Copy-Paste: setup_and_start.bat → Open index.html      ║
+╚════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zomato AI Recommender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c33;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .summary-card h2 {
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .summary-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .metadata-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .metadata-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metadata-item strong {
+            color: #333;
+        }
+
+        .restaurant-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .restaurant-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .restaurant-rank {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .restaurant-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .restaurant-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .restaurant-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+        }
+
+        .detail-item strong {
+            color: #333;
+        }
+
+        .rating {
+            background: #4caf50;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .rating.high {
+            background: #4caf50;
+        }
+
+        .rating.medium {
+            background: #ff9800;
+        }
+
+        .rating.low {
+            background: #f44336;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            line-height: 1.6;
+            color: #555;
+            font-style: italic;
+        }
+
+        .explanation::before {
+            content: "💡 ";
+            font-style: normal;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+        }
+
+        .empty-state h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .restaurant-header {
+                flex-direction: column;
+            }
+
+            .restaurant-info {
+                margin-left: 0;
+                margin-top: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Zomato AI Recommender</h1>
+            <p>Get personalized restaurant recommendations powered by AI</p>
+        </div>
+
+        <div class="search-card">
+            <form id="searchForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="location">Location *</label>
+                        <select id="location" required>
+                            <option value="">Loading cities...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="budget">Budget *</label>
+                        <select id="budget" required>
+                            <option value="">Select budget...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cuisine">Cuisine *</label>
+                        <select id="cuisine" required>
+                            <option value="">Loading cuisines...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="minRating">Minimum Rating (0-5)</label>
+                        <input type="number" id="minRating" min="0" max="5" step="0.1" value="0" placeholder="0.0">
+                        <small style="color: #666; font-size: 0.85em; display: block; margin-top: 4px;">
+                            Note: Many restaurants have 0.0 rating. Set to 0 to see all results.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="topK">Number of Recommendations</label>
+                        <input type="number" id="topK" min="1" max="10" value="5" placeholder="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additionalPrefs">Additional Preferences (comma-separated)</label>
+                        <input type="text" id="additionalPrefs" placeholder="e.g., outdoor seating, live music">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Get Recommendations
+                </button>
+            </form>
+        </div>
+
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Finding the perfect restaurants for you...</p>
+        </div>
+
+        <div id="errorSection" style="display: none;"></div>
+
+        <div id="resultsSection" class="results-section" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        // Load metadata on page load
+        async function loadMetadata() {
+            try {
+                // Load cities
+                const citiesRes = await fetch(`${API_BASE}/meta/cities`);
+                const citiesData = await citiesRes.json();
+                const locationSelect = document.getElementById('location');
+                locationSelect.innerHTML = '<option value="">Select location...</option>' +
+                    citiesData.cities.map(city => `<option value="${city}">${city}</option>`).join('');
+
+                // Load cuisines
+                const cuisinesRes = await fetch(`${API_BASE}/meta/cuisines`);
+                const cuisinesData = await cuisinesRes.json();
+                const cuisineSelect = document.getElementById('cuisine');
+                cuisineSelect.innerHTML = '<option value="">Select cuisine...</option>' +
+                    cuisinesData.cuisines.map(cuisine => `<option value="${cuisine}">${cuisine}</option>`).join('');
+
+                // Load budgets
+                const budgetsRes = await fetch(`${API_BASE}/meta/budgets`);
+                const budgetsData = await budgetsRes.json();
+                const budgetSelect = document.getElementById('budget');
+                budgetSelect.innerHTML = '<option value="">Select budget...</option>' +
+                    budgetsData.budgets.map(b => 
+                        `<option value="${b.bucket}">${b.bucket.toUpperCase()} - ${b.description} (₹${b.approximate_cost_for_two_min}-${b.approximate_cost_for_two_max})</option>`
+                    ).join('');
+
+            } catch (error) {
+                console.error('Error loading metadata:', error);
+                showError('Failed to load form options. Please ensure the API server is running at ' + API_BASE);
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const location = document.getElementById('location').value;
+            const budget = document.getElementById('budget').value;
+            const cuisine = document.getElementById('cuisine').value;
+            const minRating = parseFloat(document.getElementById('minRating').value) || 0;
+            const topK = parseInt(document.getElementById('topK').value) || 5;
+            const additionalPrefs = document.getElementById('additionalPrefs').value;
+
+            const requestData = {
+                location,
+                budget,
+                cuisine,
+                min_rating: minRating,
+                top_k: topK
+            };
+
+            if (additionalPrefs.trim()) {
+                requestData.additional_preferences = additionalPrefs.split(',').map(p => p.trim());
+            }
+
+            console.log('📤 Sending request:', requestData);
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/recommend`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'Failed to get recommendations');
+                }
+
+                const data = await response.json();
+                console.log('✅ API Response received:', data);
+                console.log('   Recommendations count:', data.recommendations?.length || 0);
+                console.log('   Summary:', data.summary);
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to get recommendations. Please try again.');
+            } finally {
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        });
+
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            errorSection.innerHTML = `<div class="error"><strong>Error:</strong> ${message}</div>`;
+            errorSection.style.display = 'block';
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            
+            console.log('📊 displayResults called with:', data);
+            console.log('   recommendations:', data.recommendations);
+            console.log('   recommendations length:', data.recommendations?.length);
+            
+            if (!data.recommendations || data.recommendations.length === 0) {
+                console.warn('⚠️  No recommendations in response, showing empty state');
+                resultsSection.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No Recommendations Found</h2>
+                        <p>Try adjusting your preferences or selecting a different location.</p>
+                        <p style="font-size: 0.9em; margin-top: 20px;">
+                            Debug info: Status=${data.status}, Candidates=${data.candidates?.length || 0}, 
+                            Fallback=${data.metadata?.fallback_used}
+                        </p>
+                    </div>
+                `;
+                resultsSection.style.display = 'block';
+                return;
+            }
+
+            console.log('✅ Displaying', data.recommendations.length, 'recommendations');
+            
+            const metadata = data.metadata || {};
+            const summary = data.summary || '';
+
+            let html = '';
+
+            // Summary section
+            if (summary) {
+                html += `
+                    <div class="summary-card">
+                        <h2>AI Summary</h2>
+                        <p>${summary}</p>
+                        <div class="metadata-info">
+                            ${metadata.request_id ? `<div class="metadata-item"><strong>Request ID:</strong> ${metadata.request_id.substring(0, 8)}...</div>` : ''}
+                            ${metadata.processing_ms ? `<div class="metadata-item"><strong>Processing Time:</strong> ${metadata.processing_ms}ms</div>` : ''}
+                            ${metadata.fallback_used !== undefined ? `<div class="metadata-item"><strong>LLM Status:</strong> ${metadata.fallback_used ? '⚠️ Fallback used' : '✅ Active'}</div>` : ''}
+                            ${metadata.pool_size_before_top_k ? `<div class="metadata-item"><strong>Candidates Evaluated:</strong> ${metadata.pool_size_before_top_k}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Restaurant cards
+            data.recommendations.forEach((restaurant, index) => {
+                // Safely handle all fields with fallbacks
+                const name = restaurant.name || 'Unknown Restaurant';
+                const rating = restaurant.rating != null ? restaurant.rating : 0;
+                const ratingClass = rating >= 4 ? 'high' : rating >= 3 ? 'medium' : 'low';
+                const cuisine = restaurant.cuisine || 'Not specified';
+                const cost = restaurant.estimated_cost != null ? Math.round(restaurant.estimated_cost) : 'N/A';
+                const explanation = restaurant.explanation || 'No explanation available';
+                
+                html += `
+                    <div class="restaurant-card">
+                        <div class="restaurant-header">
+                            <div class="restaurant-rank">${index + 1}</div>
+                            <div class="restaurant-info">
+                                <div class="restaurant-name">${name}</div>
+                                <div class="restaurant-details">
+                                    <div class="detail-item">
+                                        <span class="rating ${ratingClass}">⭐ ${rating.toFixed(1)}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Cuisine:</strong> ${cuisine}
+                                    </div>
+                                    <div class="detail-item">
+                                        <strong>Cost for 2:</strong> ${typeof cost === 'number' ? '₹' + cost : cost}
+                                    </div>
+                                </div>
+                                <div class="explanation">
+                                    ${explanation}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsSection.innerHTML = html;
+            resultsSection.style.display = 'block';
+
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Load metadata when page loads
+        loadMetadata();
+    </script>
+</body>
+</html>

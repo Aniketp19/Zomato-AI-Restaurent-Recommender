@@ -1,0 +1,229 @@
+openapi: 3.0.3
+info:
+  title: Zomato AI Recommender API
+  version: 0.2.0
+  description: Phase 5 API with request tracking and metadata endpoints.
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  app_name:
+                    type: string
+                  env:
+                    type: string
+                  request_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                required: [status, app_name, env]
+  /meta/cities:
+    get:
+      summary: Get available cities
+      operationId: getCities
+      responses:
+        "200":
+          description: List of available cities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cities:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+                  request_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                required: [cities, count]
+  /meta/cuisines:
+    get:
+      summary: Get available cuisines
+      operationId: getCuisines
+      responses:
+        "200":
+          description: List of available cuisines
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cuisines:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+                  request_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                required: [cuisines, count]
+  /meta/budgets:
+    get:
+      summary: Get budget options
+      operationId: getBudgets
+      responses:
+        "200":
+          description: List of budget options with ranges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  budgets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        bucket:
+                          type: string
+                          enum: [low, medium, high]
+                        description:
+                          type: string
+                        approximate_cost_for_two_min:
+                          type: integer
+                        approximate_cost_for_two_max:
+                          type: integer
+                      required: [bucket, description, approximate_cost_for_two_min, approximate_cost_for_two_max]
+                  count:
+                    type: integer
+                  request_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                required: [budgets, count]
+  /recommend:
+    post:
+      summary: Generate final AI recommendations
+      description: Phase 4 endpoint for intake, retrieval, Groq ranking, and explanation generation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                location:
+                  type: string
+                budget:
+                  type: string
+                  enum: [low, medium, high]
+                cuisine:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items: { type: string }
+                min_rating:
+                  type: number
+                additional_preferences:
+                  type: array
+                  items: { type: string }
+                top_k:
+                  type: integer
+              required: [location, budget, cuisine]
+      responses:
+        "200":
+          description: Final recommendations generated using Groq with fallback support
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: accepted
+                  profile:
+                    type: object
+                    properties:
+                      preferred_city: { type: string }
+                      budget_bucket:
+                        type: string
+                        enum: [low, medium, high]
+                      budget_range:
+                        type: object
+                        properties:
+                          min: { type: number }
+                          max: { type: number }
+                      cuisine_tokens:
+                        type: array
+                        items: { type: string }
+                      rating_floor: { type: number }
+                      extra_tags:
+                        type: array
+                        items: { type: string }
+                      top_k: { type: integer }
+                  recommendations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        restaurant_id: { type: string }
+                        name: { type: string }
+                        cuisine: { type: string }
+                        rating: { type: number }
+                        estimated_cost: { type: number }
+                        explanation: { type: string }
+                  summary:
+                    type: string
+                    nullable: true
+                  candidates:
+                    type: array
+                    items:
+                      type: object
+                  notes:
+                    type: array
+                    items: { type: string }
+                  metadata:
+                    type: object
+                    properties:
+                      request_id:
+                        type: string
+                        format: uuid
+                        nullable: true
+                      processing_ms:
+                        type: integer
+                        description: Processing time in milliseconds
+                      phase:
+                        type: string
+                      pool_size_before_top_k:
+                        type: integer
+                      requested_top_k:
+                        type: integer
+                      applied_relaxations:
+                        type: array
+                        items: { type: string }
+                      fallback_used:
+                        type: boolean
+                      model_version:
+                        type: string
+                required: [status, profile, recommendations, candidates, notes, metadata]
+        "400":
+          description: Invalid preference values
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code: { type: string }
+                      message: { type: string }
+                      details: { type: object }
+                    required: [code, message, details]

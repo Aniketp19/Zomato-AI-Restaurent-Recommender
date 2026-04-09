@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background: #28a745; }
+        .status-offline { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Zomato API Test Page</h1>
+        <p style="text-align: center;">Quick diagnostic tool to verify the API is running correctly</p>
+        
+        <div class="test-section">
+            <h3><span id="statusDot" class="status-indicator status-offline"></span>Server Status</h3>
+            <button onclick="testAll()">🔄 Test All Endpoints</button>
+            <button onclick="testHealth()">❤️ Test Health</button>
+            <button onclick="testCities()">🏙️ Test Cities</button>
+            <button onclick="testCuisines()">🍽️ Test Cuisines</button>
+            <button onclick="testBudgets()">💰 Test Budgets</button>
+        </div>
+
+        <div id="healthTest" class="test-section" style="display:none;">
+            <h3>GET /health</h3>
+            <div id="healthResult" class="test-result loading">Testing...</div>
+        </div>
+
+        <div id="citiesTest" class="test-section" style="display:none;">
+            <h3>GET /meta/cities</h3>
+            <div id="citiesResult" class="test-result loading">Testing...</div>
+        </div>
+
+        <div id="cuisinesTest" class="test-section" style="display:none;">
+            <h3>GET /meta/cuisines</h3>
+            <div id="cuisinesResult" class="test-result loading">Testing...</div>
+        </div>
+
+        <div id="budgetsTest" class="test-section" style="display:none;">
+            <h3>GET /meta/budgets</h3>
+            <div id="budgetsResult" class="test-result loading">Testing...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        function updateStatus(isOnline) {
+            const dot = document.getElementById('statusDot');
+            dot.className = isOnline ? 'status-indicator status-online' : 'status-indicator status-offline';
+        }
+
+        async function testEndpoint(endpoint, resultId, sectionId) {
+            const section = document.getElementById(sectionId);
+            const resultDiv = document.getElementById(resultId);
+            
+            section.style.display = 'block';
+            resultDiv.className = 'test-result loading';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'test-result success';
+                    resultDiv.textContent = `✅ Success (${response.status})\n\n` + JSON.stringify(data, null, 2);
+                    updateStatus(true);
+                } else {
+                    resultDiv.className = 'test-result error';
+                    resultDiv.textContent = `❌ Error (${response.status})\n\n` + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result error';
+                resultDiv.textContent = `❌ Connection Failed\n\nError: ${error.message}\n\nMake sure the API server is running:\n  python -m uvicorn src.phase0.api.main:app --reload --port 8000`;
+                updateStatus(false);
+            }
+        }
+
+        async function testHealth() {
+            await testEndpoint('/health', 'healthResult', 'healthTest');
+        }
+
+        async function testCities() {
+            await testEndpoint('/meta/cities', 'citiesResult', 'citiesTest');
+        }
+
+        async function testCuisines() {
+            await testEndpoint('/meta/cuisines', 'cuisinesResult', 'cuisinesTest');
+        }
+
+        async function testBudgets() {
+            await testEndpoint('/meta/budgets', 'budgetsResult', 'budgetsTest');
+        }
+
+        async function testAll() {
+            await testHealth();
+            await testCities();
+            await testCuisines();
+            await testBudgets();
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            setTimeout(testHealth, 500);
+        });
+    </script>
+</body>
+</html>

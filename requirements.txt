@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pandas
+datasets
+pydantic-settings
+pyyaml
+requests
