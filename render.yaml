@@ -5,7 +5,23 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python -m uvicorn src.phase0.api.main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: APP_ENV
+        sync: false
+      - key: APP_NAME
+        sync: false
       - key: GROQ_API_KEY
         sync: false
-      - key: HF_TOKEN
+      - key: GROQ_MODEL
+        sync: false
+      - key: HF_DATASET_ID
+        sync: false
+      - key: HF_DATASET_SPLIT
+        sync: false
+      - key: SQLITE_PATH
+        sync: false
+      - key: CRITICAL_NULL_THRESHOLD
+        sync: false
+      - key: MAX_ALLOWED_DUPLICATE_RATIO
         sync: false
