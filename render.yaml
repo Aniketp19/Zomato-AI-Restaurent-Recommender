@@ -2,7 +2,8 @@ services:
   - type: web
     name: zomato-ai-recommender
     runtime: python
-    buildCommand: pip install -r requirements.txt && python -m src.phase1.data.pipeline
+    buildCommand: pip install -r requirements.txt
+startCommand: python -m src.phase1.data.pipeline && python -m uvicorn src.phase0.api.main:app --host 0.0.0.0 --port $PORT
     startCommand: python -m uvicorn src.phase0.api.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ALLOWED_ORIGINS
